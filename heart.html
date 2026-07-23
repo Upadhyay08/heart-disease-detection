@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Heart Disease Detection</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --black: #0A0A0A; --off-white: #F2F0EB; --red: #E53935;
+      --accent: #E8A020; --green: #4ADE80; --muted: #6B7280;
+      --card-bg: #141820; --border: #252D3A; --steel: #2A3240;
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--black); color: var(--off-white); font-family: 'Space Grotesk', sans-serif; line-height: 1.6; }
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 1rem 3rem; background: rgba(10,10,10,0.92); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+    .nav-logo { font-family: 'Space Mono', monospace; font-size: 0.85rem; color: var(--red); letter-spacing: 0.08em; }
+    .nav-links { display: flex; gap: 2rem; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.85rem; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--off-white); }
+    .hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 8rem 3rem 4rem; position: relative; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; top: -200px; right: -200px; width: 600px; height: 600px; background: radial-gradient(circle, rgba(229,57,53,0.12) 0%, transparent 70%); pointer-events: none; }
+    .eyebrow { font-family: 'Space Mono', monospace; font-size: 0.75rem; color: var(--red); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 1.5rem; }
+    .hero h1 { font-size: clamp(2.8rem, 7vw, 6rem); font-weight: 700; line-height: 1.05; letter-spacing: -0.02em; max-width: 900px; margin-bottom: 1.5rem; }
+    .hero h1 span { color: var(--red); }
+    .hero p { font-size: 1.1rem; color: var(--muted); max-width: 520px; margin-bottom: 3rem; line-height: 1.7; }
+    .stats { display: flex; gap: 3rem; flex-wrap: wrap; }
+    .stat-num { font-family: 'Space Mono', monospace; font-size: 2.2rem; font-weight: 700; line-height: 1; }
+    .stat-num.green { color: var(--green); }
+    .stat-num.red { color: var(--red); }
+    .stat-num.accent { color: var(--accent); }
+    .stat-label { font-size: 0.75rem; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 0.3rem; }
+    section { padding: 6rem 3rem; max-width: 1100px; margin: 0 auto; }
+    .sec-eye { font-family: 'Space Mono', monospace; font-size: 0.72rem; color: var(--red); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 1rem; }
+    .sec-title { font-size: clamp(1.8rem, 3.5vw, 2.8rem); font-weight: 700; letter-spacing: -0.02em; margin-bottom: 1rem; }
+    .sec-desc { color: var(--muted); max-width: 600px; margin-bottom: 3rem; font-size: 1rem; line-height: 1.7; }
+    hr.div { border: none; border-top: 1px solid var(--border); margin: 0; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 2.5rem; }
+    .card { background: var(--card-bg); padding: 1.8rem; }
+    .card .num { font-family: 'Space Mono', monospace; font-size: 2rem; font-weight: 700; line-height: 1; margin-bottom: 0.4rem; }
+    .card .num.green { color: var(--green); }
+    .card .num.red { color: var(--red); }
+    .card .num.accent { color: var(--accent); }
+    .card .lbl { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+    .card .desc { font-size: 0.9rem; color: var(--off-white); margin-top: 0.5rem; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 2.5rem; }
+    .fc { background: var(--card-bg); padding: 2rem; }
+    .fc h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .dot.red { background: var(--red); }
+    .dot.green { background: var(--green); }
+    .dot.yellow { background: var(--accent); }
+    .fc p, .fc li { font-size: 0.88rem; color: var(--muted); line-height: 1.7; }
+    .fc ul { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+    .fc ul li { padding-left: 1rem; position: relative; }
+    .fc ul li::before { content: '→'; position: absolute; left: 0; color: var(--red); }
+    .pipeline { border: 1px solid var(--border); margin-bottom: 2rem; }
+    .ps { display: grid; grid-template-columns: 60px 1fr auto; align-items: center; gap: 1.5rem; padding: 1.5rem 2rem; background: var(--card-bg); border-bottom: 1px solid var(--border); transition: background 0.2s; }
+    .ps:last-child { border-bottom: none; }
+    .ps:hover { background: var(--steel); }
+    .ps-num { font-family: 'Space Mono', monospace; font-size: 1.4rem; font-weight: 700; color: var(--border); }
+    .ps h4 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.2rem; }
+    .ps p { font-size: 0.82rem; color: var(--muted); }
+    .badge { font-family: 'Space Mono', monospace; font-size: 0.7rem; padding: 0.3rem 0.7rem; border-radius: 2px; white-space: nowrap; }
+    .bg { background: rgba(74,222,128,0.1); color: var(--green); }
+    .br { background: rgba(229,57,53,0.15); color: var(--red); }
+    .by { background: rgba(232,160,32,0.15); color: var(--accent); }
+    .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 2rem; }
+    .mc { background: var(--black); padding: 2rem; text-align: center; }
+    .mv { font-family: 'Space Mono', monospace; font-size: 2rem; font-weight: 700; line-height: 1; margin-bottom: 0.4rem; }
+    .mv.green { color: var(--green); }
+    .mv.red { color: var(--red); }
+    .mv.accent { color: var(--accent); }
+    .mn { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+    .md { font-size: 0.8rem; color: var(--muted); margin-top: 0.5rem; }
+    .model-cmp { width: 100%; border-collapse: collapse; margin-bottom: 2rem; font-size: 14px; }
+    .model-cmp th { background: var(--steel); color: var(--off-white); padding: 12px 16px; text-align: left; font-family: 'Space Mono', monospace; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 1px solid var(--border); }
+    .model-cmp td { padding: 12px 16px; border-bottom: 1px solid var(--border); color: var(--muted); }
+    .model-cmp tr:last-child td { border-bottom: none; }
+    .model-cmp tr.winner td { color: var(--off-white); background: rgba(74,222,128,0.05); }
+    .model-cmp .val { font-family: 'Space Mono', monospace; color: var(--off-white); }
+    .model-cmp .val.green { color: var(--green); }
+    .cm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); }
+    .cm-cell { padding: 1.5rem; text-align: center; }
+    .cm-cell.tp, .cm-cell.tn { background: rgba(74,222,128,0.1); }
+    .cm-cell.fp, .cm-cell.fn { background: rgba(229,57,53,0.1); }
+    .cm-cell .big { font-family: 'Space Mono', monospace; font-size: 2rem; font-weight: 700; }
+    .cm-cell.tp .big, .cm-cell.tn .big { color: var(--green); }
+    .cm-cell.fp .big, .cm-cell.fn .big { color: var(--red); }
+    .cm-cell .small { font-size: 0.75rem; color: var(--muted); margin-top: 0.3rem; }
+    .insight { margin-top: 1.5rem; padding: 1.5rem 2rem; background: var(--card-bg); border: 1px solid var(--border); border-left: 3px solid var(--green); }
+    .insight p { font-size: 0.88rem; color: var(--muted); line-height: 1.7; }
+    .insight strong { color: var(--green); }
+    .cv-table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; }
+    .cv-table th { background: var(--steel); color: var(--off-white); padding: 10px 16px; font-family: 'Space Mono', monospace; font-size: 0.72rem; text-transform: uppercase; border-bottom: 1px solid var(--border); text-align: left; }
+    .cv-table td { padding: 10px 16px; border-bottom: 1px solid var(--border); font-size: 0.88rem; color: var(--muted); }
+    .cv-table tr.winner td { color: var(--off-white); }
+    footer { border-top: 1px solid var(--border); padding: 2rem 3rem; display: flex; justify-content: space-between; align-items: center; max-width: 1100px; margin: 0 auto; }
+    footer p { font-size: 0.8rem; color: var(--muted); }
+    footer a { color: var(--accent); text-decoration: none; font-family: 'Space Mono', monospace; font-size: 0.75rem; }
+    @media (max-width: 768px) {
+      nav { padding: 1rem 1.5rem; } .nav-links { display: none; }
+      section { padding: 4rem 1.5rem; } .hero { padding: 7rem 1.5rem 3rem; }
+      .two-col { grid-template-columns: 1fr; } .metrics { grid-template-columns: 1fr 1fr; }
+      .ps { grid-template-columns: 40px 1fr; } .badge { display: none; }
+      footer { flex-direction: column; gap: 1rem; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">HEART DISEASE DETECTION</div>
+  <div class="nav-links">
+    <a href="#dataset">Dataset</a>
+    <a href="#eda">EDA</a>
+    <a href="#pipeline">Pipeline</a>
+    <a href="#results">Results</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="eyebrow">Machine Learning Project</div>
+  <h1>Can a machine predict a <span>heart attack?</span></h1>
+  <p>A complete ML pipeline comparing Logistic Regression, KNN, and SVM on 1025 patients — with Cross Validation, ColumnTransformer, and 88.29% accuracy.</p>
+  <div class="stats">
+    <div><div class="stat-num">1025</div><div class="stat-label">Patients</div></div>
+    <div><div class="stat-num">13</div><div class="stat-label">Features</div></div>
+    <div><div class="stat-num green">88.29%</div><div class="stat-label">Best Accuracy</div></div>
+    <div><div class="stat-num accent">95.15%</div><div class="stat-label">Recall (SVM)</div></div>
+  </div>
+</div>
+
+<hr class="div" />
+
+<section id="dataset">
+  <div class="sec-eye">The Data</div>
+  <h2 class="sec-title">Heart Disease Dataset</h2>
+  <p class="sec-desc">1025 patients with 13 features including age, cholesterol, blood pressure, chest pain type and more. Goal: predict presence of heart disease (1) or absence (0).</p>
+  <div class="cards">
+    <div class="card"><div class="num">1025</div><div class="lbl">Total Patients</div><div class="desc">No missing values — perfectly clean dataset</div></div>
+    <div class="card"><div class="num">13</div><div class="lbl">Features</div><div class="desc">Mix of numeric and categorical features</div></div>
+    <div class="card"><div class="num red">526</div><div class="lbl">Heart Disease (1)</div><div class="desc">51.3% — majority class</div></div>
+    <div class="card"><div class="num green">499</div><div class="lbl">No Disease (0)</div><div class="desc">48.7% — almost perfectly balanced!</div></div>
+  </div>
+  <div class="insight"><p><strong>Balanced Dataset:</strong> 526 vs 499 — almost equal classes. No SMOTE or oversampling needed. Model won't be biased towards any class.</p></div>
+</section>
+
+<hr class="div" />
+
+<section id="eda">
+  <div class="sec-eye">Exploratory Data Analysis</div>
+  <h2 class="sec-title">What the data revealed</h2>
+  <p class="sec-desc">Two types of analysis — understanding individual features and their relationship with heart disease.</p>
+
+  <div class="two-col" style="margin-bottom:2rem;">
+    <div class="fc">
+      <h3><span class="dot red"></span>Numeric Features</h3>
+      <ul>
+        <li>Age: 40-70 years — both diseased and healthy overlap</li>
+        <li>Cholesterol: right skewed, outliers above 400</li>
+        <li>Oldpeak: heavily right skewed — transformation needed</li>
+        <li>Thalach: diseased patients have HIGHER heart rate (150-180)</li>
+        <li>Trestbps: 120-160 range — outliers present</li>
+      </ul>
+    </div>
+    <div class="fc">
+      <h3><span class="dot green"></span>Top Correlated Features with Target</h3>
+      <ul>
+        <li>cp (chest pain) → +0.43 — strongest positive signal</li>
+        <li>thalach (max heart rate) → +0.42 — high HR = disease</li>
+        <li>exang (exercise angina) → -0.44 — strongest negative</li>
+        <li>oldpeak (ST depression) → -0.44 — key predictor</li>
+        <li>ca (blocked vessels) → -0.38 — more blocks = less disease?</li>
+      </ul>
+    </div>
+    <div class="fc">
+      <h3><span class="dot yellow"></span>Key Medical Insight</h3>
+      <p>Higher maximum heart rate (thalach) is associated with heart disease — diseased hearts pump harder. Chest pain type (cp) is the strongest positive predictor. No feature pair has correlation >0.8, so no multicollinearity removal needed.</p>
+    </div>
+    <div class="fc">
+      <h3><span class="dot green"></span>Feature Types</h3>
+      <ul>
+        <li>Numeric: age, trestbps, chol, thalach, oldpeak</li>
+        <li>Categorical: sex, cp, fbs, restecg, exang, slope, ca, thal</li>
+        <li>No null values found in any column</li>
+        <li>No multicollinearity — all pairs below 0.8</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<hr class="div" />
+
+<section id="pipeline">
+  <div class="sec-eye">ML Pipeline</div>
+  <h2 class="sec-title">From raw data to 3 models</h2>
+  <p class="sec-desc">A reusable pipeline with ColumnTransformer — numeric scaling and categorical encoding in one step.</p>
+
+  <div class="pipeline">
+    <div class="ps">
+      <div class="ps-num">01</div>
+      <div><h4>Train / Test Split</h4><p>80/20 split — 820 train, 205 test. No stratify needed as classes are balanced.</p></div>
+      <div class="badge bg">820 / 205</div>
+    </div>
+    <div class="ps">
+      <div class="ps-num">02</div>
+      <div><h4>ColumnTransformer</h4><p>Numeric columns → StandardScaler. Categorical columns → OneHotEncoder. Both applied in parallel, fit on train only.</p></div>
+      <div class="badge by">No leakage</div>
+    </div>
+    <div class="ps">
+      <div class="ps-num">03</div>
+      <div><h4>3 Models Compared</h4><p>Logistic Regression, KNN (k=5), SVM (rbf kernel) — all in identical pipelines for fair comparison.</p></div>
+      <div class="badge by">Fair comparison</div>
+    </div>
+    <div class="ps">
+      <div class="ps-num">04</div>
+      <div><h4>Cross Validation (5-fold)</h4><p>Each model tested on 5 different train/test splits. Average F1 score taken for reliable comparison.</p></div>
+      <div class="badge bg">5-fold CV</div>
+    </div>
+    <div class="ps">
+      <div class="ps-num">05</div>
+      <div><h4>Best Model Selected</h4><p>SVM won with CV F1 = 0.9329 and lowest variance (±0.023) — most consistent and accurate.</p></div>
+      <div class="badge bg">SVM Wins 🏆</div>
+    </div>
+  </div>
+
+  <div class="insight"><p><strong>Why ColumnTransformer?</strong> Different columns need different preprocessing. Numeric features need scaling (StandardScaler), categorical features need encoding (OneHotEncoder). ColumnTransformer applies both in parallel — fit on training data only to prevent data leakage.</p></div>
+</section>
+
+<hr class="div" />
+
+<section id="results">
+  <div class="sec-eye">Model Results</div>
+  <h2 class="sec-title">Which model wins?</h2>
+  <p class="sec-desc">All 3 models compared on test set and cross validation. SVM dominates across all metrics.</p>
+
+  <div style="font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;padding-bottom:0.8rem;border-bottom:1px solid var(--border);margin-bottom:0;">Test Set Performance</div>
+  <table class="model-cmp">
+    <tr><th>Model</th><th>Accuracy</th><th>Precision</th><th>Recall</th><th>F1 Score</th></tr>
+    <tr><td>Logistic Regression</td><td class="val">81.95%</td><td class="val">77.97%</td><td class="val">89.32%</td><td class="val">83.26%</td></tr>
+    <tr><td>KNN (k=5)</td><td class="val">80.00%</td><td class="val">76.27%</td><td class="val">87.38%</td><td class="val">81.45%</td></tr>
+    <tr class="winner"><td>SVM (rbf) 🏆</td><td class="val green">88.29%</td><td class="val green">83.76%</td><td class="val green">95.15%</td><td class="val green">89.09%</td></tr>
+  </table>
+
+  <div style="font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;padding-bottom:0.8rem;border-bottom:1px solid var(--border);margin-bottom:0;">Cross Validation (5-fold) F1 Score</div>
+  <table class="cv-table">
+    <tr><th>Model</th><th>Mean F1</th><th>Std Dev</th><th>Verdict</th></tr>
+    <tr><td>Logistic Regression</td><td>0.8762</td><td>±0.0347</td><td style="color:var(--muted)">Good</td></tr>
+    <tr><td>KNN (k=5)</td><td>0.8825</td><td>±0.0326</td><td style="color:var(--muted)">Good</td></tr>
+    <tr class="winner"><td>SVM (rbf) 🏆</td><td style="color:var(--green)">0.9329</td><td style="color:var(--green)">±0.0230</td><td style="color:var(--green)">Best + Most Stable</td></tr>
+  </table>
+
+  <div class="metrics">
+    <div class="mc"><div class="mv green">88.29%</div><div class="mn">Accuracy</div><div class="md">Overall correctness</div></div>
+    <div class="mc"><div class="mv accent">83.76%</div><div class="mn">Precision</div><div class="md">When model says disease, it's right 83.8% of time</div></div>
+    <div class="mc"><div class="mv green">95.15%</div><div class="mn">Recall</div><div class="md">95% of actual heart disease cases caught!</div></div>
+    <div class="mc"><div class="mv green">0.9329</div><div class="mn">CV F1 Score</div><div class="md">Consistent across all 5 folds</div></div>
+  </div>
+
+  <div style="font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;padding-bottom:0.8rem;border-bottom:1px solid var(--border);margin-bottom:1px;">Confusion Matrix — SVM Best Model</div>
+  <div style="border:1px solid var(--border);padding:1rem;margin-bottom:1.5rem;">
+    <div class="cm-grid">
+      <div class="cm-cell tn"><div class="big">83</div><div class="small">True Negative ✅<br>No disease, correctly identified</div></div>
+      <div class="cm-cell fp"><div class="big" style="color:var(--red)">19</div><div class="small">False Positive ❌<br>Healthy flagged as disease</div></div>
+      <div class="cm-cell fn"><div class="big" style="color:var(--red)">5</div><div class="small">False Negative ⚠️<br>Disease missed — dangerous!</div></div>
+      <div class="cm-cell tp"><div class="big">98</div><div class="small">True Positive ✅<br>Disease correctly caught</div></div>
+    </div>
+  </div>
+
+  <div class="insight"><p><strong>Why SVM won:</strong> SVM's RBF kernel maps data into higher dimensions where complex non-linear patterns become linearly separable. Heart disease has complex relationships between features that a straight line (Logistic Regression) can't capture. SVM found the optimal boundary with maximum margin. Low std dev (±0.023) in CV confirms it's not just lucky — it's genuinely better.</p></div>
+</section>
+
+<hr class="div" />
+
+<footer>
+  <p>Heart Disease Detection · ML Project comparing LR, KNN & SVM · 2026</p>
+  <a href="https://github.com/" target="_blank">View on GitHub →</a>
+</footer>
+
+</body>
+</html>
